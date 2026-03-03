@@ -4,6 +4,7 @@ AetherisAPI est une librairie Java pour accélérer le développement de plugins
 
 Ce projet n'est pas un plugin autonome: c'est une API/framework que tu inclus dans tes plugins pour gérer rapidement:
 - services (Economy, Guild, Profile, etc.)
+- NPCs (teleportation, stats, loot, marchand, dialogue)
 - commandes
 - events
 - endpoints
@@ -62,6 +63,103 @@ public final class MyPlugin extends AetherisPlugin {
 
 ```java
 api.services().register(EconomyService.class, new MyEconomyService());
+```
+
+### 2 bis) Service NPC (deja actif)
+
+```java
+// De base, Aetheris.create(...) enregistre deja:
+// - PersistentNpcService (namespace storage: "npcs")
+// - Endpoints CRUD NPC
+```
+
+Puis creation d'un NPC:
+
+```java
+import fr.aetheris.api.domain.npc.*;
+
+NpcDefinition npc = new NpcDefinition(
+        "npc-teleport-hub",
+        "Voyageur",
+        NpcType.TELEPORT,
+        new NpcLocation("world", 100, 65, 100, 0f, 0f),
+        Map.of("skin", "traveler"),
+        List.of(new TeleportAction(new NpcLocation("spawn", 0, 64, 0, 90f, 0f)))
+);
+
+api.npcs().save(npc);
+```
+### 2 ter) Brancher les actions NPC sur ton plugin
+
+```java
+import fr.aetheris.api.domain.npc.*;
+
+NpcInteractionResult result = api.npcs().interact(
+        "npc-teleport-hub",
+        new NpcInteractionContext(playerId, NpcInteractionType.INTERACT, Map.of())
+);
+
+NpcInteractionExecutor executor = new NpcInteractionExecutor();
+executor.execute(playerId, result, new NpcExecutionAdapter() {
+    @Override
+    public void teleport(String playerId, NpcLocation destination) {
+        // Teleporte le joueur avec ton plugin NPC / Bukkit API
+    }
+
+    @Override
+    public void applyStat(String playerId, String statKey, double value, StatOperation operation) {
+        // Applique les stats
+    }
+
+    @Override
+    public void grantLoot(String playerId, NpcLootEntry entry, int amount) {
+        // Donne le loot
+    }
+
+    @Override
+    public void openMerchant(String playerId, List<NpcMerchantOffer> offers) {
+        // Ouvre le shop
+    }
+
+    @Override
+    public void startDialogue(String playerId, String dialogueId, List<String> lines) {
+        // Lance le dialogue
+    }
+
+    @Override
+    public void handleCustomAction(String playerId, NpcAction action) {
+        // Gestion custom
+    }
+});
+```
+
+### 2 quater) Endpoints NPC CRUD
+
+Endpoints enregistres automatiquement:
+- `POST /npcs/create`
+- `PUT /npcs/update`
+- `GET /npcs/get?id=<npcId>`
+- `GET /npcs/list` (option: `type=TELEPORT|STATS|LOOT|MERCHANT|DIALOGUE|CUSTOM`)
+- `DELETE /npcs/delete?id=<npcId>`
+- `POST /npcs/interact`
+
+Payload `create/update` accepte query params et body au format `.properties`.
+Exemple body:
+
+```properties
+id=npc-shop-1
+name=Marchand Central
+type=MERCHANT
+world=world
+x=120
+y=64
+z=88
+yaw=180
+pitch=0
+attributes=skin:villager;faction:city
+merchant=diamond,1,250,coins;gold_ingot,5,80,coins
+dialogueId=shop_welcome
+dialogue=Bienvenue|Tu cherches quelque chose ?
 ```
 
 ### 3) Permissions et roles
@@ -155,6 +253,7 @@ store.put("player-uuid", "{\"level\":12}");
 - `fr.aetheris.api.security`: permissions + roles
 - `fr.aetheris.api.storage`: stockage multi-backends
 - `fr.aetheris.api.domain`: interfaces metiers de base (economy, guild, profile)
+- `fr.aetheris.api.domain.npc`: creation NPC (types/actions/interactions)
 
 ## Notes
 
@@ -165,3 +264,5 @@ store.put("player-uuid", "{\"level\":12}");
 ## Licence
 
 A definir selon ton choix (MIT, Apache-2.0, GPL, etc.).
+
+

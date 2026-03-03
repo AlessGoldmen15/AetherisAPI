@@ -3,6 +3,7 @@ package fr.aetheris.api;
 import fr.aetheris.api.command.DefaultCommandRegistry;
 import fr.aetheris.api.endpoint.DefaultEndpointRegistry;
 import fr.aetheris.api.event.DefaultEventBus;
+import fr.aetheris.api.module.NpcModule;
 import fr.aetheris.api.security.DefaultPermissionService;
 import fr.aetheris.api.security.DefaultRoleService;
 import fr.aetheris.api.service.DefaultServiceRegistry;
@@ -31,7 +32,7 @@ public final class Aetheris {
         final DefaultRoleService roleService = new DefaultRoleService();
         final DefaultPermissionService permissionService = new DefaultPermissionService(roleService);
 
-        return new DefaultAetherisApi(
+        final AetherisApi api = new DefaultAetherisApi(
                 new DefaultServiceRegistry(),
                 new DefaultCommandRegistry(),
                 new DefaultEventBus(),
@@ -40,6 +41,9 @@ public final class Aetheris {
                 roleService,
                 storageManager
         );
+
+        new NpcModule().register(api);
+        return api;
     }
 
     private static void createDataDirectory(Path dataDirectory) {

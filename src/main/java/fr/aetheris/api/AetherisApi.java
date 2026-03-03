@@ -1,6 +1,7 @@
 package fr.aetheris.api;
 
 import fr.aetheris.api.command.CommandRegistry;
+import fr.aetheris.api.domain.npc.NpcService;
 import fr.aetheris.api.endpoint.EndpointRegistry;
 import fr.aetheris.api.event.EventBus;
 import fr.aetheris.api.security.PermissionService;
@@ -23,6 +24,10 @@ public interface AetherisApi extends AutoCloseable {
     RoleService roles();
 
     StorageManager storage();
+
+    default NpcService npcs() {
+        return services().require(NpcService.class);
+    }
 
     @Override
     void close();
