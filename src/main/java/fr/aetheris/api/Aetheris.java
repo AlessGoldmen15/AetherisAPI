@@ -3,6 +3,7 @@ package fr.aetheris.api;
 import fr.aetheris.api.command.DefaultCommandRegistry;
 import fr.aetheris.api.endpoint.DefaultEndpointRegistry;
 import fr.aetheris.api.event.DefaultEventBus;
+import fr.aetheris.api.module.GuiModule;
 import fr.aetheris.api.module.NpcModule;
 import fr.aetheris.api.security.DefaultPermissionService;
 import fr.aetheris.api.security.DefaultRoleService;
@@ -42,6 +43,7 @@ public final class Aetheris {
                 storageManager
         );
 
+        new GuiModule().register(api);
         new NpcModule().register(api);
         return api;
     }
